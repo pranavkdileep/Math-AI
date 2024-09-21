@@ -4,6 +4,13 @@ import { ColorSwatch, Group } from "@mantine/core";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import Draggable from 'react-draggable';
+import { Eraser } from 'lucide-react'
+import { toast } from "sonner"
+import { Toggle } from "@/components/ui/toggle"
+import { Slider } from "@/components/ui/slider"
+
+
+
 
 
 interface Response {
@@ -37,19 +44,19 @@ export default function Home() {
   }, [reset]);
 
 
-  useEffect(() =>{
-    if(result){
+  useEffect(() => {
+    if (result) {
       renderLatexToCanvas(result.expression, result.answer);
     }
-  },[result]);
+  }, [result]);
 
-  useEffect(() =>{
-    if(latexExpression.length>0 && window.MathJax){
+  useEffect(() => {
+    if (latexExpression.length > 0 && window.MathJax) {
       setTimeout(() => {
         window.MathJax.Hub.Queue(["Typeset", window.MathJax.Hub]);
-      },0);
+      }, 0);
     }
-  },[latexExpression]);
+  }, [latexExpression]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -66,7 +73,7 @@ export default function Home() {
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/config/TeX-MML-AM_CHTML.js';
     script.async = true;
     document.head.appendChild(script);
-    script.onload = () =>  {
+    script.onload = () => {
       window.MathJax.Hub.Config({
         tex2jax: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
       });
@@ -79,54 +86,66 @@ export default function Home() {
   const sendData = async () => {
     const canvas = canvasRef.current;
     if (canvas) {
-      const response = await axios({
-        method: 'post',
-        url: `${import.meta.env.VITE_API_URL}/calculate`,
-        data: {
-          image: canvas.toDataURL('image/png'),
-          dict_of_vars: dictOfVars
-        }
-      });
-      const resp = response.data;
-      console.log(resp.data);
-      resp.data.forEach((data:Response) => {
-        if(data.assign === true){
-          setDictOfVars({...dictOfVars, [data.expr]: data.result});
-        }
-      });
+      try {
+        const response = await axios({
+          method: 'post',
+          url: `${import.meta.env.VITE_API_URL}/calculate`,
+          data: {
+            image: canvas.toDataURL('image/png'),
+            dict_of_vars: dictOfVars
+          }
+        });
+        const resp = response.data;
+        console.log(resp.data);
+        const satus = resp.status;
+        const message = resp.message;
+        toast(satus, {
+          description: message,
+        })
+        resp.data.forEach((data: Response) => {
+          if (data.assign === true) {
+            setDictOfVars({ ...dictOfVars, [data.expr]: data.result });
+          }
+        });
 
-      const ctx = canvas.getContext('2d');
-      const imagedata  = ctx!.getImageData(0, 0, canvas.width, canvas.height);
-      let minx = canvas.width;
-      let miny = canvas.height;
-      let maxx = 0;
-      let maxy = 0;
-      for(let y =0;y<canvas.height;y++){
-        for(let x=0;x<canvas.width;x++){
-          if(imagedata.data[(y*canvas.width +x)*4+3]>0){
-            if(x<minx){
-              minx = x;
-            }
-            if(y<miny){
-              miny = y;
-            }
-            if(x>maxx){
-              maxx = x;
-            }
-            if(y>maxy){
-              maxy = y;
+        const ctx = canvas.getContext('2d');
+        const imagedata = ctx!.getImageData(0, 0, canvas.width, canvas.height);
+        let minx = canvas.width;
+        let miny = canvas.height;
+        let maxx = 0;
+        let maxy = 0;
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            if (imagedata.data[(y * canvas.width + x) * 4 + 3] > 0) {
+              if (x < minx) {
+                minx = x;
+              }
+              if (y < miny) {
+                miny = y;
+              }
+              if (x > maxx) {
+                maxx = x;
+              }
+              if (y > maxy) {
+                maxy = y;
+              }
             }
           }
         }
+        const centerX = (minx + maxx) / 2;
+        const centerY = (miny + maxy) / 2;
+        setLatexPosition({ x: centerX, y: centerY });
+        resp.data.forEach((data: Response) => {
+          setTimeout(() => {
+            setResult({ expression: data.expr, answer: data.result });
+          }, 100);
+        });
+      } catch (e) {
+        console.log(e);
+        toast("Error", {
+          description: "Something went wrong",
+        })
       }
-      const centerX = (minx + maxx)/2;
-      const centerY = (miny + maxy)/2;
-      setLatexPosition({x: centerX, y: centerY});
-      resp.data.forEach((data:Response) => {
-        setTimeout(() => {
-          setResult({expression: data.expr, answer: data.result});
-        }, 100);
-      });
     }
   }
 
@@ -134,9 +153,9 @@ export default function Home() {
     const latex = `${expression} = ${answer}`;
     setLatexExpression([...latexExpression, latex]);
     const canvas = canvasRef.current;
-    if(canvas){
+    if (canvas) {
       const ctx = canvas.getContext('2d');
-      if(ctx){
+      if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
     }
@@ -185,37 +204,54 @@ export default function Home() {
   return (
     <>
 
-    <div className="grid grid-cols-3 gap-2 bg-black">
-      <Button onClick={() => setReset(true)}
-      className="z-20 bg-black text-white"
-      variant='default'
-      color="black"
-      >
-        Reset
-      </Button>
-      <Button onClick={sendData}
-      className="z-20 bg-black text-white"
-      variant='default'
-      color="black"
-      >
-        Calculate
-      </Button>
+      <div className="grid grid-cols-3 gap-3 bg-black flex-auto m-5 outline-dotted outline-white outline-2 ">
+        <Button onClick={() => setReset(true)}
+          className="z-20 bg-black text-white"
+          variant='default'
+          color="black"
+        >
+          Reset
+        </Button>
+        <Button onClick={sendData}
+          className="z-20 bg-black text-white"
+          variant='default'
+          color="black"
+        >
+          Calculate
+        </Button>
 
-      <Group className="z-20">
-  {SWATCHES.map((swatchcolor: string) => {
-    return (
-      <ColorSwatch
-        key={swatchcolor}
-        color={swatchcolor}
-        onClick={() => setColor(swatchcolor)}
-      />
-    );
-  })}
-</Group>
+        <Toggle aria-label="Toggle bold" className="z-20">
+          <Eraser className="h-4 w-4 " />
+        </Toggle>
+
+        <Group className="z-20 ">
+          {SWATCHES.map((swatchcolor: string) => {
+            return (
+              <ColorSwatch
+                key={swatchcolor}
+                color={swatchcolor}
+                onClick={() => setColor(swatchcolor)}
+              />
+            );
+          })}
+        </Group>
+
+        <div className="z-20 bg-white flex-1 align-middle">
+          <Button className=""
+          >
+            <Eraser className="h-4 w-4" />
+          </Button>
+
+          <Slider defaultValue={[5]} max={20} step={1} />
+
+          <label>5px</label>
 
 
-      
-    </div>
+        </div>
+
+
+
+      </div>
 
       <canvas
         ref={canvasRef}
@@ -228,17 +264,17 @@ export default function Home() {
 
       />
       {latexExpression && latexExpression.map((latex, index) => (
-                <Draggable
-                    key={index}
-                    defaultPosition={latexPosition}
-                    onStop={(e, data) => setLatexPosition({ x: data.x, y: data.y })}
-                >
-                    <div className="absolute p-2 text-white rounded shadow-md">
-                        <div className="latex-content">{latex}</div>
-                    </div>
-                </Draggable>
-            ))}
+        <Draggable
+          key={index}
+          defaultPosition={latexPosition}
+          onStop={(_e, data) => setLatexPosition({ x: data.x, y: data.y })}
+        >
+          <div className="absolute p-2 text-white rounded shadow-md">
+            <div className="latex-content">{latex}</div>
+          </div>
+        </Draggable>
+      ))}
     </>
   );
-  
+
 }
