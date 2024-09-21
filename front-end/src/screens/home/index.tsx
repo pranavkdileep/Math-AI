@@ -90,6 +90,7 @@ export default function Home() {
         const response = await axios({
           method: 'post',
           url: `${import.meta.env.VITE_API_URL}/calculate`,
+          withCredentials: false,
           data: {
             image: canvas.toDataURL('image/png'),
             dict_of_vars: dictOfVars
