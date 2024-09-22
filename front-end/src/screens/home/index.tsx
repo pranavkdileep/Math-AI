@@ -11,8 +11,6 @@ import { Slider } from "@/components/ui/slider"
 
 
 
-
-
 interface Response {
   expr: string;
   result: string;
@@ -96,6 +94,25 @@ export default function Home() {
           }
         });
         const resp = response.data;
+        // const databody = {
+        //   image: canvas.toDataURL('image/png'),
+        //   dict_of_vars: dictOfVars
+        // }
+        // const response = await fetch("https://calc-be.vercel.app/calculate", {
+        //   "headers": {
+        //     "accept": "application/json, text/plain, */*",
+        //     "accept-language": "en",
+        //     "cache-control": "no-cache",
+        //     "content-type": "application/json",
+        //     "pragma": "no-cache",
+        //     "priority": "u=1, i",
+        //     "Referer": "https://calc-fe.vercel.app/",
+        //     "Referrer-Policy": "strict-origin-when-cross-origin"
+        //   },
+        //   "body": JSON.stringify(databody),
+        //   "method": "POST"
+        // });
+        // const resp = await response.json();
         console.log(resp.data);
         const satus = resp.status;
         const message = resp.message;
