@@ -30,6 +30,7 @@ export default function Home() {
   const [dictOfVars, setDictOfVars] = useState({});
   const [latexExpression, setLatexExpression] = useState<Array<string>>([]);
   const [latexPosition, setLatexPosition] = useState({ x: 10, y: 200 });
+  const [lineWidth, setLineWidth] = useState(5);
 
   useEffect(() => {
     if (reset) {
@@ -64,7 +65,7 @@ export default function Home() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ctx.lineCap = 'round';
-        ctx.lineWidth = 5;
+        ctx.lineWidth = lineWidth;
       }
     }
     const script = document.createElement('script');
@@ -201,6 +202,19 @@ export default function Home() {
       }
     }
   }
+
+  const startDrawingTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.style.background = 'black';
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+        ctx.moveTo(e.touches[0].clientX, e.touches[0].clientY);
+        setIsDrawing(true);
+      }
+    }
+  }
   const stopDrawing = () => {
     setIsDrawing(false);
   }
@@ -213,7 +227,23 @@ export default function Home() {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
         ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+        ctx.stroke();
+      }
+    }
+  }
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) {
+      return;
+    }
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.lineTo(e.touches[0].clientX, e.touches[0].clientY);
         ctx.stroke();
       }
     }
@@ -259,9 +289,11 @@ export default function Home() {
             <Eraser className="h-4 w-4" />
           </Button>
 
-          <Slider defaultValue={[5]} max={20} step={1} />
+          <Slider defaultValue={[5]} max={20} step={1}
+          onValueChange={(value) => setLineWidth(value[0])}
+          />
 
-          <label>5px</label>
+          <label>{lineWidth}px</label>
 
 
         </div>
@@ -278,6 +310,10 @@ export default function Home() {
         onMouseOut={stopDrawing}
         onMouseUp={stopDrawing}
         onMouseMove={draw}
+        onTouchStart={startDrawingTouch}
+        onTouchEnd={stopDrawing}
+        onTouchMove={drawTouch}
+        onTouchCancel={stopDrawing}
 
       />
       {latexExpression && latexExpression.map((latex, index) => (
