@@ -77,8 +77,16 @@ export default function Home() {
         tex2jax: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
       });
     }
+    const preventDefaultTouch = (e: TouchEvent) => {
+      if (canvasRef.current && canvasRef.current.contains(e.target as Node)) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("touchmove", preventDefaultTouch, { passive: false });
+
     return () => {
       document.head.removeChild(script);
+      document.removeEventListener("touchmove", preventDefaultTouch);
     };
   }, []);
 
