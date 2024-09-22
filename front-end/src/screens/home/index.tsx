@@ -126,9 +126,8 @@ export default function Home() {
         // const resp = await response.json();
         console.log(resp.data);
         const satus = resp.status;
-        const message = resp.message;
         toast(satus, {
-          description: message,
+          description: "success",
         })
         resp.data.forEach((data: Response) => {
           if (data.assign === true) {
