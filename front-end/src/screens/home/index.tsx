@@ -31,6 +31,7 @@ export default function Home() {
   const [latexExpression, setLatexExpression] = useState<Array<string>>([]);
   const [latexPosition, setLatexPosition] = useState({ x: 10, y: 200 });
   const [lineWidth, setLineWidth] = useState(5);
+  const [isEraser, setIsEraser] = useState(false);
 
   useEffect(() => {
     if (reset) {
@@ -41,6 +42,7 @@ export default function Home() {
       setDictOfVars({});
     }
   }, [reset]);
+  
 
 
   useEffect(() => {
@@ -234,10 +236,21 @@ export default function Home() {
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth;
-        ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-        ctx.stroke();
+        if (ctx) {
+          
+          ctx.lineWidth = lineWidth; // Set the brush or eraser size
+  
+          if (isEraser) {
+            ctx.globalCompositeOperation = "destination-out"; // Eraser mode
+            ctx.strokeStyle = "rgba(0,0,0,1)"; // Set eraser color (it will remove pixels)
+          } else {
+            ctx.globalCompositeOperation = "source-over"; // Normal drawing mode
+            ctx.strokeStyle = color; // Set drawing color
+          }
+  
+          ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+          ctx.stroke();
+        }
       }
     }
   }
@@ -249,8 +262,14 @@ export default function Home() {
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.strokeStyle = color;
         ctx.lineWidth = lineWidth;
+        if (isEraser) {
+          ctx.globalCompositeOperation = "destination-out"; // Eraser mode
+          ctx.strokeStyle = "rgba(0,0,0,1)"; // Set eraser color (it will remove pixels)
+        } else {
+          ctx.globalCompositeOperation = "source-over"; // Normal drawing mode
+          ctx.strokeStyle = color; // Set drawing color
+        }
         ctx.lineTo(e.touches[0].clientX, e.touches[0].clientY);
         ctx.stroke();
       }
@@ -275,7 +294,12 @@ export default function Home() {
           Calculate
         </Button>
 
-        <Toggle aria-label="Toggle bold" className="z-20">
+        <Toggle aria-label="Toggle bold" className="z-20"
+        onClick={() => {
+          console.log(isEraser);
+          setIsEraser(!isEraser);
+        }}
+        >
           <Eraser className="h-4 w-4 " />
         </Toggle>
 
