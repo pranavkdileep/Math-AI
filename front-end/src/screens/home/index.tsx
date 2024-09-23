@@ -6,7 +6,7 @@ import axios from "axios";
 import Draggable from 'react-draggable';
 import { Eraser } from 'lucide-react'
 import { toast } from "sonner"
-import { Toggle } from "@/components/ui/toggle"
+//import { Toggle } from "@/components/ui/toggle"
 import { Slider } from "@/components/ui/slider"
 
 
