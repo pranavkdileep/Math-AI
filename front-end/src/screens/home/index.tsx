@@ -42,7 +42,7 @@ export default function Home() {
       setDictOfVars({});
     }
   }, [reset]);
-  
+
 
 
   useEffect(() => {
@@ -236,9 +236,9 @@ export default function Home() {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         if (ctx) {
-          
+
           ctx.lineWidth = lineWidth; // Set the brush or eraser size
-  
+
           if (isEraser) {
             ctx.globalCompositeOperation = "destination-out"; // Eraser mode
             ctx.strokeStyle = "rgba(0,0,0,1)"; // Set eraser color (it will remove pixels)
@@ -246,7 +246,7 @@ export default function Home() {
             ctx.globalCompositeOperation = "source-over"; // Normal drawing mode
             ctx.strokeStyle = color; // Set drawing color
           }
-  
+
           ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
           ctx.stroke();
         }
@@ -277,61 +277,55 @@ export default function Home() {
   return (
     <>
 
-      <div className="grid grid-cols-3 gap-3 bg-black flex-auto m-5 outline-dotted outline-white outline-2 ">
-        <Button onClick={() => setReset(true)}
-          className="z-20 bg-black text-white"
-          variant='default'
-          color="black"
-        >
-          Reset
-        </Button>
-        <Button onClick={sendData}
-          className="z-20 bg-black text-white"
-          variant='default'
-          color="black"
-        >
-          Calculate
-        </Button>
+<div className="z-20 flex flex-wrap items-center justify-between gap-3 bg-black p-5 outline-dotted outline-white outline-2">
+  <Button
+    onClick={() => setReset(true)}
+    className="bg-red-600 text-white p-2 z-20"
+    variant="default"
+    color="black"
+  >
+    Reset
+  </Button>
 
-        <Toggle aria-label="Toggle bold" className="z-20"
-        onClick={() => {
-          console.log(isEraser);
-          setIsEraser(!isEraser);
-        }}
-        >
-          <Eraser className="h-4 w-4 " />
-        </Toggle>
+  <Group className="flex gap-2">
+    {SWATCHES.map((swatchcolor: string) => (
+      <ColorSwatch
+        key={swatchcolor}
+        color={swatchcolor}
+        className="z-20 w-6 h-6 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 focus:ring-indigo-500"
+        onClick={() => setColor(swatchcolor)}
+      />
+    ))}
+  </Group>
 
-        <Group className="z-20 ">
-          {SWATCHES.map((swatchcolor: string) => {
-            return (
-              <ColorSwatch
-                key={swatchcolor}
-                color={swatchcolor}
-                onClick={() => setColor(swatchcolor)}
-              />
-            );
-          })}
-        </Group>
+  <div className="z-20 flex items-center gap-2 bg-gray-700 p-2 rounded-md">
+    <Button className="z-20 p-1 text-white bg-gray-600 rounded"
+    onClick={() => setIsEraser(!isEraser)}
+    >
+      <Eraser className="h-4 w-4" />
+    </Button>
 
-        <div className="z-20 bg-white flex-1 align-middle">
-          <Button className=""
-          >
-            <Eraser className="h-4 w-4" />
-          </Button>
+    <Slider
+      className="z-20 flex-1 w-10"
+      defaultValue={[5]}
+      max={20}
+      step={1}
+      onValueChange={(value) => setLineWidth(value[0])}
+    />
 
-          <Slider defaultValue={[5]} max={20} step={1}
-          onValueChange={(value) => setLineWidth(value[0])}
-          />
+    <label className="text-white">{lineWidth}px</label>
+  </div>
 
-          <label>{lineWidth}px</label>
+  <Button
+    onClick={sendData}
+    className="z-20 bg-green-600 text-white p-2"
+    variant="default"
+    color="black"
+  >
+    Calculate
+  </Button>
+</div>
 
-
-        </div>
-
-
-
-      </div>
 
       <canvas
         ref={canvasRef}
